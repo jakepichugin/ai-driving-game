@@ -3,20 +3,28 @@ import torch.nn as nn #accessing neural network base class from torch library (w
 import torch.optim as optim # manage gradient descendent and back propagation steps by automation
 import numpy as np
 import pygame
+import car
 from car import Car
-from car import Wheel
-
-player = Car()
+from world import Background
 
 screen = pygame.display.set_mode((1800, 1200))
-
 clock = pygame.time.Clock()
+
+background = Background(screen)
+player = Car(screen)
+bot = Car(screen)
+
+#camera_x/y is the distance of the player from the center of the screen
+camera_x = player.xPos - (screen.get_width()/2)
+camera_y = player.yPos - (screen.get_height()/2)
+
 def draw():
     screen.fill((0, 0, 0))
 
+    background.draw(camera_x, camera_y)
     for wheel in player.wheels:
-        screen.blit(wheel.wheel_surface, wheel.wheel_rect)
-    screen.blit(player.car_surface, player.car_rect)
+        wheel.draw(camera_x, camera_y)
+    player.draw(camera_x, camera_y)
     pygame.display.flip()
 
 
@@ -24,6 +32,8 @@ def draw():
 
 running = True
 while running:
+    camera_x = player.xPos - (screen.get_width() / 2)
+    camera_y = player.yPos - (screen.get_height() / 2)
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False

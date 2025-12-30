@@ -4,7 +4,8 @@ import torch.optim as optim # manage gradient descendent and back propagation st
 import numpy as np
 import math
 import pygame
-import main
+
+
 pygame.init()
 
 STRAIGHT = 0
@@ -15,7 +16,7 @@ RIGHT = -40
 
 
 class Car:
-    def __init__(self):
+    def __init__(self, screen):
         self.width = 50
         self.height = 100
         self.xPos = 800
@@ -26,20 +27,19 @@ class Car:
         self.yVel = 0.0
         self.turnSpeed = 0.0
         self.turn_direction = STRAIGHT
-
+        self.screen = screen
         self.temp_car_surface = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
         self.car_surface = self.temp_car_surface
         self.car_surface.fill((0, 255, 0))
         self.car_rect = self.car_surface.get_rect()
 
         #left wheel then right wheel, then left back, then right back
-        self.wheels = [Wheel(self.xPos, self.yPos, True, True),
-                       Wheel(self.xPos, self.yPos, True, False),
-                       Wheel(self.xPos, self.yPos, False, True),
-                       Wheel(self.xPos, self.yPos, False, False)]
+        self.wheels = [Wheel(self.screen, self.xPos, self.yPos, True, True),
+                       Wheel(self.screen, self.xPos, self.yPos, True, False),
+                       Wheel(self.screen, self.xPos, self.yPos, False, True),
+                       Wheel(self.screen, self.xPos, self.yPos, False, False)]
 
-
-
+    # for NN change move() so it receives input, could be keys inputs, or nn outputs, and does things based on that
     def move(self):
         #inputs from keyboard
         keys = pygame.key.get_pressed()
@@ -99,14 +99,17 @@ class Car:
         pivot = pygame.math.Vector2(self.xPos, self.yPos)
         offset = pygame.math.Vector2(0, -self.height / 2)
         rotated_offset = offset.rotate(-self.angle)
+
         self.car_rect.center = (int((pivot + rotated_offset).x), int((pivot + rotated_offset).y))
 
-        self.car_rect.clamp_ip(main.screen.get_rect())
+#        print(f"Angle: {self.angle} , Speed: {self.speed}, xVel: {self.xVel}, yVel: {self.yVel}")
 
-        print(f"Angle: {self.angle} , Speed: {self.speed}, xVel: {self.xVel}, yVel: {self.yVel}")
+    def draw(self, camera_x, camera_y):
+        self.screen.blit(self.car_surface, (self.car_rect.x - camera_x, self.car_rect.y - camera_y))
 
 class Wheel:
-    def __init__(self, xpos, ypos, frontWheel, leftWheel):
+    def __init__(self, screen, xpos, ypos, frontWheel, leftWheel):
+        self.screen = screen
         self.width = 10
         self.height = 20
         self.xPos = xpos
@@ -134,3 +137,6 @@ class Wheel:
         rotated_wheel_pos = wheel_offset.rotate(-car.angle)
 
         self.wheel_rect.center = (int((car.xPos + rotated_wheel_pos.x)), int((car.yPos + rotated_wheel_pos.y)))
+
+    def draw(self, camera_x, camera_y):
+        self.screen.blit(self.wheel_surface, (self.wheel_rect.x - camera_x, self.wheel_rect.y - camera_y))
